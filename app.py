@@ -164,3 +164,45 @@ with st.expander("How to interpret these results"):
 
 st.markdown("---")
 st.caption("Research prototype for educational purposes only.")
+
+# Inject custom CSS for navy + beige theme
+st.markdown("""
+    <style>
+        /* Main page background */
+        .stApp {
+            background-color: #f5f1e6;
+        }
+
+        /* Sidebar background */
+        section[data-testid="stSidebar"] {
+            background-color: #0b1f3a !important; /* navy */
+        }
+
+        /* Sidebar text */
+        section[data-testid="stSidebar"] * {
+            color: #f5f1e6 !important; /* beige text */
+        }
+
+        /* Headers */
+        h1, h2, h3, h4, h5, h6 {
+            color: #0b1f3a !important; /* navy */
+        }
+
+        /* Links */
+        a {
+            color: #0b1f3a !important;
+        }
+
+        /* Expanders */
+        .streamlit-expanderHeader {
+            color: #0b1f3a !important;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        div.stButton button {
+            background-color: #0b1f3a !important;
+            color: #f5f1e6 !important;
+            border-radius: 6px;
+            bord
+
