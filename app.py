@@ -62,9 +62,21 @@ if st.button("Predict"):
     st.subheader("Results")
 
     st.write("Predicted Dyslexia Class (1 = Yes, 0 = No):", int(pred))
-    st.write(f"Probability of Dyslexia: {prob:.3f}")
+    st.write(f"Model probability of dyslexia: **{prob:.3f}**")
 
-    if pred == 1:
-        st.warning("Possible dyslexia risk detected.")
+    # Risk band
+    if prob < 0.3:
+        risk_level = "Low"
+        st.success("Risk level: Low. Pattern looks similar to non-dyslexic students in the dataset.")
+    elif prob < 0.6:
+        risk_level = "Moderate"
+        st.warning("Risk level: Moderate. This pattern appears in both dyslexic and non-dyslexic students.")
     else:
-        st.success("Low dyslexia risk.")
+        risk_level = "High"
+        st.error("Risk level: High. This pattern is similar to students labeled with dyslexia in the dataset.")
+
+    # Visual bar for probability
+    st.write("Risk score visualization:")
+    st.progress(float(prob))
+
+
