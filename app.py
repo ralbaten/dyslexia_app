@@ -106,9 +106,34 @@ if st.button("Predict"):
             "Risk level: High. This pattern is similar to students labeled with dyslexia in the dataset."
         )
 
-    # Visual bar for probability
+       # Visual bar for probability
     st.write("Risk score visualization:")
     st.progress(float(prob))
+
+# ---- Global feature importance ----
+with st.expander("Which features matter most overall?"):
+    try:
+        # Build a DataFrame of feature importances from the trained model
+        fi_df = pd.DataFrame(
+            {
+                "feature": features,
+                "importance": model.feature_importances_,
+            }
+        )
+
+        # Take top 10 most important features
+        fi_top = (
+            fi_df.sort_values("importance", ascending=False)
+            .head(10)
+            .set_index("feature")
+        )
+
+        st.caption("Top 10 features the model relies on across all students:")
+        st.bar_chart(fi_top)
+
+    except Exception as e:
+        st.write("Feature importance is not available for this model.")
+        st.write(e)
 
 # ---- Interpretation / disclaimer section ----
 with st.expander("How to interpret these results"):
@@ -117,6 +142,7 @@ with st.expander("How to interpret these results"):
         "not a medical or educational diagnosis.\n"
         "- Low risk means the pattern looks similar to students without a dyslexia label in the dataset.\n"
         "- Moderate risk means the pattern overlaps both groups and may warrant closer monitoring.\n"
+        "- High risk suggests the pattern is similar to students who were labeled with dyslexia in the dataset.\n"
         "- High risk suggests the pattern is similar to students who were labeled with dyslexia in the dataset.\n"
         "- Any concerns should be followed up with formal assessments by qualified professionals."
     )
