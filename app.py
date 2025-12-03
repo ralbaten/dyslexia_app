@@ -2,8 +2,10 @@ import streamlit as st
 import joblib
 import json
 import pandas as pd
+from datetime import datetime
 
-# ---- Page title & description ----
+# ---------------- Page title & description ----------------
+
 st.title("Dyslexia Screening App")
 
 st.markdown(
@@ -14,7 +16,8 @@ st.markdown(
 
 st.markdown("---")
 
-# ---- Sidebar: About the app ----
+# ---------------- Sidebar: About the app ----------------
+
 with st.sidebar:
     st.header("About this app")
     st.write(
@@ -26,20 +29,20 @@ with st.sidebar:
     st.subheader("Model details")
     st.write("• Algorithm: XGBoost classifier")
     st.write("• Target: Dyslexia (Yes / No)")
-    st.write("• Metric used during training: AUC")
+    st.write("• Primary evaluation metric: AUC")
 
     st.subheader("How to use")
     st.write(
         "1. Enter the student's age.\n"
         "2. Leave typical task scores on (recommended), or adjust them if you have detailed data.\n"
-        "3. Click Predict to see the risk score."
+        "3. Click **Predict** to see the risk score and interpretation."
     )
 
     st.subheader("Project links")
-    st.write("GitHub repo (example):")
-    st.markdown("[ralbaten/dyslexia_app](https://github.com/ralbaten/dyslexia_app)")
+    st.markdown("[GitHub repo](https://github.com/ralbaten/dyslexia_app)")
 
-# ---- Load model and metadata ----
+# ---------------- Load model and metadata ----------------
+
 model = joblib.load("xgb_best_model.joblib")
 
 # Load feature names
@@ -50,7 +53,8 @@ with open("features.json") as f:
 with open("feature_defaults.json") as f:
     default_values = json.load(f)
 
-# ---- Input section ----
+# ---------------- Input section ----------------
+
 inputs = {}
 
 st.subheader("Input Student Data")
@@ -61,10 +65,11 @@ use_defaults = st.checkbox("Use typical task scores (recommended)", value=True)
 
 # Age at the top, using default mean if available
 age_default = float(default_values.get("Age", 10.0)) if use_defaults else 10.0
-inputs["Age"] = st.number_input("Age", value=age_default, step=1.0)
+inputs["Age"] = st.number_input("Age", value=age_default, step=1.0, min_value=5.0, max_value=18.0)
 
 # Advanced features in an expander
 with st.expander("Advanced Task-Level Inputs (Optional)"):
+    st.caption("These values come from the computerized task. Defaults are typical values from the training data.")
     for feature in features:
         if feature == "Age":
             continue
@@ -73,7 +78,8 @@ with st.expander("Advanced Task-Level Inputs (Optional)"):
         base_val = float(default_values.get(feature, 0.0)) if use_defaults else 0.0
         inputs[feature] = st.number_input(feature, value=base_val)
 
-# ---- Prediction button and results ----
+# ---------------- Prediction button and results ----------------
+
 if st.button("Predict"):
     # Build dataframe from inputs
     input_df = pd.DataFrame([inputs])
@@ -87,9 +93,9 @@ if st.button("Predict"):
     st.subheader("Results")
 
     st.write("Predicted Dyslexia Class (1 = Yes, 0 = No):", int(pred))
-    st.write(f"Model probability of dyslexia: {prob:.3f}")
+    st.write(f"Model probability of dyslexia: **{prob:.3f}**")
 
-    # Risk band
+    # Risk band + message
     if prob < 0.3:
         risk_level = "Low"
         st.success(
@@ -106,43 +112,55 @@ if st.button("Predict"):
             "Risk level: High. This pattern is similar to students labeled with dyslexia in the dataset."
         )
 
-       # Visual bar for probability
+    # Visual bar for probability
     st.write("Risk score visualization:")
     st.progress(float(prob))
 
-# ---- Global feature importance ----
-with st.expander("Which features matter most overall?"):
-    try:
-        # Build a DataFrame of feature importances from the trained model
-        fi_df = pd.DataFrame(
-            {
-                "feature": features,
-                "importance": model.feature_importances_,
-            }
-        )
+    # Overall model feature importance
+    with st.expander("Which features matter most overall?"):
+        importances = model.feature_importances_
 
-        # Take top 10 most important features
-        fi_top = (
-            fi_df.sort_values("importance", ascending=False)
-            .head(10)
-            .set_index("feature")
-        )
+        fi_df = pd.DataFrame({
+            "feature": features,
+            "importance": importances
+        })
 
-        st.caption("Top 10 features the model relies on across all students:")
-        st.bar_chart(fi_top)
+        fi_top = fi_df.sort_values("importance", ascending=False).head(10)
 
-    except Exception as e:
-        st.write("Feature importance is not available for this model.")
-        st.write(e)
+        st.write("Top 10 features the model relies on the most:")
+        st.bar_chart(fi_top.set_index("feature"))
 
-# ---- Interpretation / disclaimer section ----
+    # Downloadable summary for this prediction
+    st.markdown("### Export this result")
+    result_df = pd.DataFrame([{
+        "timestamp": datetime.utcnow().isoformat(),
+        "age": inputs["Age"],
+        "predicted_class": int(pred),
+        "probability_dyslexia": float(prob),
+        "risk_level": risk_level
+    }])
+
+    csv_bytes = result_df.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        label="Download result as CSV",
+        data=csv_bytes,
+        file_name="dyslexia_screening_result.csv",
+        mime="text/csv"
+    )
+
+# ---------------- Interpretation / disclaimer ----------------
+
 with st.expander("How to interpret these results"):
     st.write(
-        "- The model output is a risk estimate based on patterns in the training data, "
+        "- The model output is a **risk estimate** based on patterns in the training data, "
         "not a medical or educational diagnosis.\n"
-        "- Low risk means the pattern looks similar to students without a dyslexia label in the dataset.\n"
-        "- Moderate risk means the pattern overlaps both groups and may warrant closer monitoring.\n"
-        "- High risk suggests the pattern is similar to students who were labeled with dyslexia in the dataset.\n"
-        "- High risk suggests the pattern is similar to students who were labeled with dyslexia in the dataset.\n"
-        "- Any concerns should be followed up with formal assessments by qualified professionals."
+        "- **Low risk** means the pattern looks similar to students without a dyslexia label in the dataset.\n"
+        "- **Moderate risk** means the pattern overlaps both groups and may warrant closer monitoring.\n"
+        "- **High risk** suggests the pattern is similar to students who were labeled with dyslexia in the dataset.\n"
+        "- Any concerns should be followed up with formal assessments by qualified professionals "
+        "such as school psychologists, special educators, or clinicians."
     )
+
+st.markdown("---")
+st.caption("Research prototype for educational purposes only.")
