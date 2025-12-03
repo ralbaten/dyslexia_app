@@ -60,17 +60,18 @@ input_df = pd.DataFrame([inputs])
 st.markdown("---")
 st.subheader("Results")
 
-    pred = model.predict(input_df)[0]
-    prob = model.predict_proba(input_df)[0][1]
+# Predict
+pred = model.predict(input_df)[0]
+prob = model.predict_proba(input_df)[0][1]
 
-    st.subheader("Results")
-    st.write("Predicted Dyslexia Class (1 = Yes, 0 = No):", int(pred))
-    st.write(f"Probability of Dyslexia: {prob:.3f}")
+st.write("Predicted Dyslexia Class (1 = Yes, 0 = No):", int(pred))
+st.write(f"Probability of Dyslexia: {prob:.3f}")
 
-    if pred == 1:
-        st.warning("Possible dyslexia risk detected.")
-    else:
-        st.success("Low dyslexia risk.")
+if pred == 1:
+    st.warning("Possible dyslexia risk detected.")
+else:
+    st.success("Low dyslexia risk.")
+
 
 
 
