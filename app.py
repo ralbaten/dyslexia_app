@@ -3,22 +3,18 @@ import joblib
 import json
 import pandas as pd
 
-# Page title
+# ---- Page title & description ----
 st.title("Dyslexia Screening App")
 
-# Subtitle description
 st.markdown(
     "This tool uses a machine learning model (XGBoost) trained on behavioral task data "
     "to estimate a student's likelihood of dyslexia. "
-    "It is designed as a rapid, early-screening tool—not a diagnosis."
+    "It is designed as a rapid, early-screening tool, **not** a diagnosis."
 )
 
-st.markdown("---")  # nice divider line
-st.markdown(f"**Predicted Dyslexia Class** (1 = Yes, 0 = No): `{prediction}`")
-st.markdown(f"**Probability of Dyslexia:** `{probability:.3f}`")
+st.markdown("---")  # divider
 
-
-# Load model
+# ---- Load model and metadata ----
 model = joblib.load("xgb_best_model.joblib")
 
 # Load feature names
@@ -29,13 +25,11 @@ with open("features.json") as f:
 with open("feature_defaults.json") as f:
     default_values = json.load(f)
 
-
-
+# ---- Input section ----
 inputs = {}
 
 st.subheader("Input Student Data")
-st.caption("Enter basic information. Advanced task scores are optional.")
-
+st.caption("Enter age. You can optionally adjust detailed task scores.")
 
 # Checkbox to use typical defaults
 use_defaults = st.checkbox("Use typical task scores (recommended)", value=True)
@@ -54,24 +48,23 @@ with st.expander("Advanced Task-Level Inputs (Optional)"):
         base_val = float(default_values.get(feature, 0.0)) if use_defaults else 0.0
         inputs[feature] = st.number_input(feature, value=base_val)
 
+# ---- Prediction button ----
+if st.button("Predict"):
+    # Build dataframe from inputs
+    input_df = pd.DataFrame([inputs])
 
-input_df = pd.DataFrame([inputs])
+    # Predict
+    pred = model.predict(input_df)[0]
+    prob = model.predict_proba(input_df)[0][1]
 
-st.markdown("---")
-st.subheader("Results")
+    # Results section
+    st.markdown("---")
+    st.subheader("Results")
 
-# Predict
-pred = model.predict(input_df)[0]
-prob = model.predict_proba(input_df)[0][1]
+    st.write("Predicted Dyslexia Class (1 = Yes, 0 = No):", int(pred))
+    st.write(f"Probability of Dyslexia: {prob:.3f}")
 
-st.write("Predicted Dyslexia Class (1 = Yes, 0 = No):", int(pred))
-st.write(f"Probability of Dyslexia: {prob:.3f}")
-
-if pred == 1:
-    st.warning("Possible dyslexia risk detected.")
-else:
-    st.success("Low dyslexia risk.")
-
-
-
-
+    if pred == 1:
+        st.warning("Possible dyslexia risk detected.")
+    else:
+        st.success("Low dyslexia risk.")
