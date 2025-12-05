@@ -3,6 +3,10 @@ import joblib
 import json
 import pandas as pd
 from datetime import datetime
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
 
 # --------------- Custom CSS for layout / styling ---------------
 
@@ -207,6 +211,7 @@ if predict_clicked:
         st.bar_chart(fi_top.set_index("feature"))
 
     st.markdown("### Export this result")
+    
     result_df = pd.DataFrame(
         [
             {
@@ -224,6 +229,82 @@ if predict_clicked:
         data=csv_bytes,
         file_name="dyslexia_screening_result.csv",
         mime="text/csv",
+    )
+
+        # --------- PDF report generation ---------
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    y = height - 72  # start 1 inch from top
+
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(72, y, "Dyslexia Screening Report")
+    y -= 30
+
+    c.setFont("Helvetica", 10)
+    c.drawString(72, y, f"Generated (UTC): {datetime.utcnow().isoformat(timespec='seconds')}")
+    y -= 20
+
+    c.drawString(72, y, f"Student age: {inputs['Age']:.1f}")
+    y -= 20
+
+    c.drawString(72, y, f"Predicted class (1 = Yes, 0 = No): {int(pred)}")
+    y -= 20
+
+    c.drawString(72, y, f"Model probability of dyslexia: {prob:.3f}")
+    y -= 20
+
+    c.drawString(72, y, f"Risk level: {risk_level}")
+    y -= 30
+
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(72, y, "Interpretation (high level):")
+    y -= 18
+
+    c.setFont("Helvetica", 10)
+    if risk_level == "Low":
+        txt = (
+            "Pattern looks similar to non-dyslexic students in the dataset. "
+            "This is not a diagnosis; continue monitoring literacy progress."
+        )
+    elif risk_level == "Moderate":
+        txt = (
+            "Pattern appears in both dyslexic and non-dyslexic students. "
+            "Consider further screening and closer monitoring."
+        )
+    else:
+        txt = (
+            "Pattern is similar to students labeled with dyslexia in the dataset. "
+            "Recommend follow-up with a qualified professional for a full assessment."
+        )
+
+    # Wrap text manually into multiple lines (simple wrap)
+    max_chars = 90
+    lines = [txt[i:i+max_chars] for i in range(0, len(txt), max_chars)]
+    for line in lines:
+        c.drawString(72, y, line)
+        y -= 14
+
+    y -= 20
+    c.setFont("Helvetica-Oblique", 8)
+    c.drawString(
+        72,
+        y,
+        "This report is a research prototype output and not a clinical or educational diagnosis."
+    )
+
+    c.showPage()
+    c.save()
+
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+
+    st.download_button(
+        label="Download PDF report",
+        data=pdf_bytes,
+        file_name="dyslexia_screening_report.pdf",
+        mime="application/pdf",
     )
 
     st.markdown('</div>', unsafe_allow_html=True)  # close results card
@@ -249,3 +330,4 @@ st.markdown(
     '<div class="footer-text">Research prototype for educational purposes only.</div>',
     unsafe_allow_html=True,
 )
+
