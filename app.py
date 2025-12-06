@@ -105,6 +105,9 @@ with st.sidebar:
         "It uses data from a computerized task and outputs a dyslexia risk score."
     )
 
+        st.markdown('<div class="sidebar-section-title">Accessibility</div>', unsafe_allow_html=True)
+    dyslexic_mode = st.checkbox("Dyslexia-friendly mode", value=True)
+
     st.markdown('<div class="sidebar-section-title">Model</div>', unsafe_allow_html=True)
     st.write("• Algorithm: XGBoost classifier")
     st.write("• Target: Dyslexia (Yes / No)")
@@ -119,6 +122,58 @@ with st.sidebar:
 
     st.markdown('<div class="sidebar-section-title">Project link</div>', unsafe_allow_html=True)
     st.markdown("[GitHub repo](https://github.com/ralbaten/dyslexia_app)")
+
+# Apply dyslexia-friendly styles if enabled
+if 'dyslexic_mode' in locals() and dyslexic_mode:
+    st.markdown(
+        """
+        <style>
+            /* Use a highly readable font */
+            @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;600&display=swap');
+
+            html, body, [class*="css"]  {
+                font-family: 'Atkinson Hyperlegible', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+                line-height: 1.6 !important;
+                letter-spacing: 0.03em !important;
+            }
+
+            /* Increase font size slightly for readability */
+            p, span, label, li {
+                font-size: 1.02rem !important;
+            }
+
+            /* Make form labels and inputs a bit clearer */
+            label {
+                font-weight: 600 !important;
+            }
+
+            .stNumberInput input {
+                font-size: 1.0rem !important;
+            }
+
+            /* Avoid centered block text where possible */
+            .stMarkdown, .stText {
+                text-align: left !important;
+            }
+
+            /* Slightly softer background on main area to reduce glare */
+            .main {
+                background-color: #f7f2e8 !important;
+            }
+
+            /* Ensure buttons have clear edges and focus */
+            .stButton>button {
+                outline: 2px solid #0a2342 !important;
+                outline-offset: 1px;
+            }
+
+            .stButton>button:focus {
+                box-shadow: 0 0 0 3px #f5f0e6;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # --------------- Load model and metadata ---------------
 
@@ -330,4 +385,5 @@ st.markdown(
     '<div class="footer-text">Research prototype for educational purposes only.</div>',
     unsafe_allow_html=True,
 )
+
 
