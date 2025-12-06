@@ -96,6 +96,7 @@ st.markdown(
 
 # --------------- Sidebar content ---------------
 
+# --------------- Sidebar content ---------------
 with st.sidebar:
     st.markdown('<div class="sidebar-logo">📚 Dyslexia AI Screener</div>', unsafe_allow_html=True)
 
@@ -105,7 +106,8 @@ with st.sidebar:
         "It uses data from a computerized task and outputs a dyslexia risk score."
     )
 
-        st.markdown('<div class="sidebar-section-title">Accessibility</div>', unsafe_allow_html=True)
+    # Accessibility section
+    st.markdown('<div class="sidebar-section-title">Accessibility</div>', unsafe_allow_html=True)
     dyslexic_mode = st.checkbox("Dyslexia-friendly mode", value=True)
 
     st.markdown('<div class="sidebar-section-title">Model</div>', unsafe_allow_html=True)
@@ -123,26 +125,26 @@ with st.sidebar:
     st.markdown('<div class="sidebar-section-title">Project link</div>', unsafe_allow_html=True)
     st.markdown("[GitHub repo](https://github.com/ralbaten/dyslexia_app)")
 
-# Apply dyslexia-friendly styles if enabled
-if 'dyslexic_mode' in locals() and dyslexic_mode:
+
+# --------------- Dyslexia-friendly style overrides ---------------
+if dyslexic_mode:
     st.markdown(
         """
         <style>
-            /* Use a highly readable font */
+            /* Use highly readable font */
             @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;600&display=swap');
 
-            html, body, [class*="css"]  {
-                font-family: 'Atkinson Hyperlegible', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+            html, body, [class*="css"] {
+                font-family: 'Atkinson Hyperlegible', system-ui, sans-serif !important;
                 line-height: 1.6 !important;
                 letter-spacing: 0.03em !important;
             }
 
-            /* Increase font size slightly for readability */
+            /* Slight font size boost */
             p, span, label, li {
                 font-size: 1.02rem !important;
             }
 
-            /* Make form labels and inputs a bit clearer */
             label {
                 font-weight: 600 !important;
             }
@@ -151,17 +153,17 @@ if 'dyslexic_mode' in locals() and dyslexic_mode:
                 font-size: 1.0rem !important;
             }
 
-            /* Avoid centered block text where possible */
+            /* Left-align text for readability */
             .stMarkdown, .stText {
                 text-align: left !important;
             }
 
-            /* Slightly softer background on main area to reduce glare */
+            /* Softer main background */
             .main {
                 background-color: #f7f2e8 !important;
             }
 
-            /* Ensure buttons have clear edges and focus */
+            /* Clear button outlines */
             .stButton>button {
                 outline: 2px solid #0a2342 !important;
                 outline-offset: 1px;
@@ -174,6 +176,7 @@ if 'dyslexic_mode' in locals() and dyslexic_mode:
         """,
         unsafe_allow_html=True,
     )
+
 
 # --------------- Load model and metadata ---------------
 
@@ -385,5 +388,6 @@ st.markdown(
     '<div class="footer-text">Research prototype for educational purposes only.</div>',
     unsafe_allow_html=True,
 )
+
 
 
